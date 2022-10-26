@@ -91,6 +91,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (this.group != null) {
             throw new IllegalStateException("group set already");
         }
+        // 客户端EventLoopGroup或者服务端的bossGroup
         this.group = group;
         return self();
     }
@@ -106,6 +107,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * {@link Channel} implementation has no no-args constructor.
      */
     public B channel(Class<? extends C> channelClass) {
+        // 主要根据传进来的类，后续通过反射创建该类实例
         return channelFactory(new ReflectiveChannelFactory<C>(
                 ObjectUtil.checkNotNull(channelClass, "channelClass")
         ));
@@ -269,6 +271,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
+        // initAndRegister 重点
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
@@ -278,6 +281,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
+            // 绑定配置的ip端口
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {
@@ -307,7 +311,10 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            // 这里就是反射创建channel(xxxxx.class)实例的调用，具体分析可以跟进NioServerSocketChannel（nio服务端）构造函数，客户端是NioSocketChannel
+            // 客户端的socketChannel构建实例过程基本和服务端的类似，只是没有bossWork(即构造函数的parent为空)，并构建的事件类型为OP_READ
             channel = channelFactory.newChannel();
+            // 一些处理去的初始化处理
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -319,7 +326,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             // as the Channel is not registered yet we need to force the usage of the GlobalEventExecutor
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
-
+        // channel注册到对应的eventLoop
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {

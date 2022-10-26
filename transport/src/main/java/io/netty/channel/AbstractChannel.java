@@ -72,6 +72,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         this.parent = parent;
         id = newId();
         unsafe = newUnsafe();
+        // pipeline管道的创建
         pipeline = newChannelPipeline();
     }
 
@@ -475,11 +476,12 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             AbstractChannel.this.eventLoop = eventLoop;
-
+           // register0 重点
             if (eventLoop.inEventLoop()) {
                 register0(promise);
             } else {
                 try {
+                    // 走execute看（SingleThreadEventExecutor， 具体是register0放进taskQueue，后续执行）
                     eventLoop.execute(new Runnable() {
                         @Override
                         public void run() {
@@ -505,15 +507,19 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     return;
                 }
                 boolean firstRegistration = neverRegistered;
+                // nio对应的注册， channel绑定注册到selector中
                 doRegister();
                 neverRegistered = false;
                 registered = true;
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
+                // 重点，调用处理器中的handlerAdded()方法，比如说ChannelInitializer中的对应的handlerAdded()，
+                // 会把自定义的业务处理去初始化绑定到对应的channel管道中，handlerAdded() -> ChannelInitializer#initChannel()
                 pipeline.invokeHandlerAddedIfNeeded();
 
                 safeSetSuccess(promise);
+                // 调用管道的channelRegistered()
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.

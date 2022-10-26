@@ -76,6 +76,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             try {
                 try {
                     do {
+                        // 重点
                         int localRead = doReadMessages(readBuf);
                         if (localRead == 0) {
                             break;
@@ -94,6 +95,8 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 int size = readBuf.size();
                 for (int i = 0; i < size; i ++) {
                     readPending = false;
+                    // 循环readBuf，这个readBuf里面是与客户端建立的channel连接
+                    // 执行服务端的serverChannel的管道channelRead()方法，即之前放进去的ServerBootstrapAcceptor这个服务端处理器
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
                 readBuf.clear();

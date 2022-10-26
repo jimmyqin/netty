@@ -77,10 +77,14 @@ public abstract class AbstractNioChannel extends AbstractChannel {
      * @param readInterestOp    the ops to set to receive data from the {@link SelectableChannel}
      */
     protected AbstractNioChannel(Channel parent, SelectableChannel ch, int readInterestOp) {
+        // 父类构造方法会创建管道
         super(parent);
+        // 这个ch就是构建好的channel
         this.ch = ch;
+        // 对应的事件
         this.readInterestOp = readInterestOp;
         try {
+            // nio对应的非阻塞设置
             ch.configureBlocking(false);
         } catch (IOException e) {
             try {
@@ -204,6 +208,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         /**
          * Read from underlying {@link SelectableChannel}
          */
+        // 连接会走NioMessageUnsafe，读事件会走NioByteUnsafe
         void read();
 
         void forceFlush();
@@ -377,6 +382,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         boolean selected = false;
         for (;;) {
             try {
+                // 对应nio的 serverChannel.register(selector)
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
             } catch (CancelledKeyException e) {

@@ -78,6 +78,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
      * Create a new instance
      */
     public NioSocketChannel() {
+        // 客户端的socketChannel基本和服务端的类似，只是没有bossWork(即构造函数的parent为空)，并构建的事件类型为OP_READ
         this(DEFAULT_SELECTOR_PROVIDER);
     }
 
@@ -305,6 +306,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
 
     private void doBind0(SocketAddress localAddress) throws Exception {
         if (PlatformDependent.javaVersion() >= 7) {
+            // 客户端对应的nio
             SocketUtils.bind(javaChannel(), localAddress);
         } else {
             SocketUtils.bind(javaChannel().socket(), localAddress);

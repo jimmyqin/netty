@@ -63,6 +63,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
      * @param ch                the underlying {@link SelectableChannel} on which it operates
      */
     protected AbstractNioByteChannel(Channel parent, SelectableChannel ch) {
+        // OP_READ事件
         super(parent, ch, SelectionKey.OP_READ);
     }
 
@@ -122,6 +123,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             }
             allocHandle.readComplete();
             pipeline.fireChannelReadComplete();
+            // 执行管道的异常处理ExceptionCaught()方法
             pipeline.fireExceptionCaught(cause);
 
             // If oom will close the read event, release connection.
@@ -148,6 +150,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             try {
                 do {
                     byteBuf = allocHandle.allocate(allocator);
+                    // 读取推送过来的数据
                     allocHandle.lastBytesRead(doReadBytes(byteBuf));
                     if (allocHandle.lastBytesRead() <= 0) {
                         // nothing was read. release the buffer.
@@ -163,11 +166,13 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
                     allocHandle.incMessagesRead(1);
                     readPending = false;
+                    // 执行管道的channelRead()方法
                     pipeline.fireChannelRead(byteBuf);
                     byteBuf = null;
                 } while (allocHandle.continueReading());
 
                 allocHandle.readComplete();
+                // 执行管道的channelReadComplete()方法
                 pipeline.fireChannelReadComplete();
 
                 if (close) {

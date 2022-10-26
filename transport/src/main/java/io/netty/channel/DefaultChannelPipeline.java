@@ -1112,6 +1112,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         // the EventLoop.
         PendingHandlerCallback task = pendingHandlerCallbackHead;
         while (task != null) {
+            // 这里
             task.execute();
             task = task.next;
         }
@@ -1460,6 +1461,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         void execute() {
             EventExecutor executor = ctx.executor();
             if (executor.inEventLoop()) {
+                // 走这里
                 callHandlerAdded0(ctx);
             } else {
                 try {
