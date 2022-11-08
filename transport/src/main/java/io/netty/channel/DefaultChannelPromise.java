@@ -81,7 +81,7 @@ public class DefaultChannelPromise extends DefaultPromise<Void> implements Chann
 
     @Override
     public boolean trySuccess() {
-        return trySuccess(null);
+        return trySuccess(null); // 执行
     }
 
     @Override

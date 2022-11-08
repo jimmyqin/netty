@@ -56,6 +56,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     @SuppressWarnings("unchecked")
     private static final Map.Entry<AttributeKey<?>, Object>[] EMPTY_ATTRIBUTE_ARRAY = new Map.Entry[0];
 
+    // bossGroup
     volatile EventLoopGroup group;
     @SuppressWarnings("deprecation")
     private volatile ChannelFactory<? extends C> channelFactory;
@@ -63,8 +64,10 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
     // The order in which ChannelOptions are applied is important they may depend on each other for validation
     // purposes.
+    // 可选配置
     private final Map<ChannelOption<?>, Object> options = new LinkedHashMap<ChannelOption<?>, Object>();
     private final Map<AttributeKey<?>, Object> attrs = new ConcurrentHashMap<AttributeKey<?>, Object>();
+    // 处理器
     private volatile ChannelHandler handler;
 
     AbstractBootstrap() {
@@ -281,7 +284,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
-            // 绑定配置的ip端口
+
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {
@@ -299,7 +302,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
                         // Registration was successful, so set the correct executor to use.
                         // See https://github.com/netty/netty/issues/2586
                         promise.registered();
-
+                        // 绑定配置的ip端口
                         doBind0(regFuture, channel, localAddress, promise);
                     }
                 }
@@ -314,7 +317,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             // 这里就是反射创建channel(xxxxx.class)实例的调用，具体分析可以跟进NioServerSocketChannel（nio服务端）构造函数，客户端是NioSocketChannel
             // 客户端的socketChannel构建实例过程基本和服务端的类似，只是没有bossWork(即构造函数的parent为空)，并构建的事件类型为OP_READ
             channel = channelFactory.newChannel();
-            // 一些处理去的初始化处理
+            // 一些处理器的初始化处理
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -356,6 +359,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
         // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
         // the pipeline in its channelRegistered() implementation.
+        // 第三个线程任务
         channel.eventLoop().execute(new Runnable() {
             @Override
             public void run() {

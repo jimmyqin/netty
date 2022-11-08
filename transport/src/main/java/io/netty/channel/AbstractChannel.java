@@ -482,6 +482,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             } else {
                 try {
                     // 走execute看（SingleThreadEventExecutor， 具体是register0放进taskQueue，后续执行）
+                    // 第一个线程任务
                     eventLoop.execute(new Runnable() {
                         @Override
                         public void run() {
@@ -507,10 +508,10 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     return;
                 }
                 boolean firstRegistration = neverRegistered;
-                // nio对应的注册， channel绑定注册到selector中
+                // nio对应的注册， 把channel绑定到selector中
                 doRegister();
                 neverRegistered = false;
-                registered = true;
+                                                                                                                                                      registered = true;
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
@@ -565,7 +566,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             boolean wasActive = isActive();
             try {
-                doBind(localAddress);
+                doBind(localAddress);// 执行绑定
             } catch (Throwable t) {
                 safeSetFailure(promise, t);
                 closeIfClosed();
@@ -573,6 +574,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             if (!wasActive && isActive()) {
+                // 第四个线程任务，执行管道激活方法
                 invokeLater(new Runnable() {
                     @Override
                     public void run() {
@@ -993,7 +995,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
          * Marks the specified {@code promise} as success.  If the {@code promise} is done already, log a message.
          */
         protected final void safeSetSuccess(ChannelPromise promise) {
-            if (!(promise instanceof VoidChannelPromise) && !promise.trySuccess()) {
+            if (!(promise instanceof VoidChannelPromise) && !promise.trySuccess()) { // 执行trySuccess
                 logger.warn("Failed to mark a promise as success because it is done already: {}", promise);
             }
         }

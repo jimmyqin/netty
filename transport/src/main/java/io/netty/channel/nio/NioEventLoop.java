@@ -143,7 +143,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 rejectedExecutionHandler);
         this.provider = ObjectUtil.checkNotNull(selectorProvider, "selectorProvider");
         this.selectStrategy = ObjectUtil.checkNotNull(strategy, "selectStrategy");
-        final SelectorTuple selectorTuple = openSelector();
+        final SelectorTuple selectorTuple = openSelector();// 这里
         this.selector = selectorTuple.selector;
         this.unwrappedSelector = selectorTuple.unwrappedSelector;
     }
@@ -508,7 +508,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         for (;;) {
             try {
                 int strategy;
-                try {
+                try { // 第一次初始化strategy返回的是0
                     strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
                     switch (strategy) {
                     case SelectStrategy.CONTINUE:
@@ -553,24 +553,23 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 if (ioRatio == 100) {
                     try {
                         if (strategy > 0) {
-                            // 处理epoll中的rdlist里面的就绪事件
                             processSelectedKeys();
                         }
                     } finally {
                         // Ensure we always run tasks.
-                        // 运行之前放进taskQueue里面的任务，放进去的任务主要执行register0()方法
                         ranTasks = runAllTasks();
                     }
                 } else if (strategy > 0) {
                     final long ioStartTime = System.nanoTime();
                     try {
-                        processSelectedKeys();
+                        processSelectedKeys(); // 处理epoll中的rdlist里面的就绪事件
                     } finally {
                         // Ensure we always run tasks.
                         final long ioTime = System.nanoTime() - ioStartTime;
                         ranTasks = runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
                     }
                 } else {
+                    // 走这里
                     ranTasks = runAllTasks(0); // This will run the minimum number of tasks
                 }
 
@@ -596,7 +595,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             } finally {
                 // Always handle shutdown even if the loop processing threw an exception.
                 try {
-                    if (isShuttingDown()) {
+                    if (isShuttingDown()) { // 服务器为关闭状态，退出循环
                         closeAll();
                         if (confirmShutdown()) {
                             return;
@@ -719,7 +718,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private void processSelectedKeysOptimized() {
-        // 循环处理epoll中的rdlist里面的就绪事件
+        // 循环处理Epoll中的rdlist里面的就绪事件
         for (int i = 0; i < selectedKeys.size; ++i) {
             final SelectionKey k = selectedKeys.keys[i];
             // null out entry in the array to allow to have it GC'ed once the Channel close
@@ -773,6 +772,10 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
         try {
             // 事件类型
+            // OP_ACCEPT：有新的网络连接，值为16
+            // OP_CONNECT：代表连接已经连接，值为8
+            // OP_READ：代表读操作，值为1
+            // OP_WRITE：代表写操作，值为4
             int readyOps = k.readyOps();
             // We first need to call finishConnect() before try to trigger a read(...) or write(...) as otherwise
             // the NIO JDK channel implementation may throw a NotYetConnectedException.

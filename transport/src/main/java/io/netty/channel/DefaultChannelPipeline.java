@@ -208,8 +208,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
             // In this case we add the context to the pipeline and add a task that will call
             // ChannelHandler.handlerAdded(...) once the channel is registered.
+            // 初始化走这里
             if (!registered) {
                 newCtx.setAddPending();
+                // 这里
                 callHandlerCallbackLater(newCtx, true);
                 return this;
             }
@@ -220,7 +222,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 return this;
             }
         }
-        callHandlerAdded0(newCtx);
+        callHandlerAdded0(newCtx);// 服务端的ServerBootstrapAcceptor走这里
         return this;
     }
 
@@ -606,6 +608,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     private void callHandlerAdded0(final AbstractChannelHandlerContext ctx) {
         try {
+            // 这里
             ctx.callHandlerAdded();
         } catch (Throwable t) {
             boolean removed = false;
@@ -1124,6 +1127,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         PendingHandlerCallback task = added ? new PendingHandlerAddedTask(ctx) : new PendingHandlerRemovedTask(ctx);
         PendingHandlerCallback pending = pendingHandlerCallbackHead;
         if (pending == null) {
+            // 这个后续会用到
             pendingHandlerCallbackHead = task;
         } else {
             // Find the tail of the linked-list.

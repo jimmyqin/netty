@@ -176,7 +176,7 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
                     } else {
                         // Registration was successful, so set the correct executor to use.
                         // See https://github.com/netty/netty/issues/2586
-                        promise.registered();
+                        promise.registered(); // 标记注册完成
                         doResolveAndConnect0(channel, remoteAddress, localAddress, promise);
                     }
                 }

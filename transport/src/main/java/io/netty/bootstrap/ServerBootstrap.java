@@ -148,7 +148,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                 if (handler != null) {
                     pipeline.addLast(handler);
                 }
-
+                // 第二个线程任务
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {
@@ -206,16 +206,17 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         @Override
         @SuppressWarnings("unchecked")
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            // 处理客户端连接，重点
             // 这child就是客户端的channel
             final Channel child = (Channel) msg;
-            // 把自定义的业务处理去绑定到客户端的channel管道中
+            // 把自定义的业务处理绑定到客户端的channel管道中
             child.pipeline().addLast(childHandler);
 
             setChannelOptions(child, childOptions, logger);
             setAttributes(child, childAttrs);
 
             try {
-                // 将客户端的channel交给workLoopGroup中的一个工作线程
+                // 将客户端的channel注册到workLoopGroup中的一个工作线程
                 childGroup.register(child).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {

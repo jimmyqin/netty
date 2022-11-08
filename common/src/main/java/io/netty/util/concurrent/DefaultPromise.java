@@ -42,7 +42,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
     private static final AtomicReferenceFieldUpdater<DefaultPromise, Object> RESULT_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(DefaultPromise.class, Object.class, "result");
     private static final Object SUCCESS = new Object();
-    private static final Object UNCANCELLABLE = new Object();
+    private static final Object UNCANCELLABLE = new Object();//
     private static final CauseHolder CANCELLATION_CAUSE_HOLDER = new CauseHolder(
             StacklessCancellationException.newInstance(DefaultPromise.class, "cancel(...)"));
     private static final StackTraceElement[] CANCELLATION_STACK = CANCELLATION_CAUSE_HOLDER.cause.getStackTrace();
@@ -177,7 +177,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
         checkNotNull(listener, "listener");
 
         synchronized (this) {
-            addListener0(listener);
+            addListener0(listener);// 执行
         }
 
         if (isDone()) {
@@ -488,7 +488,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
             if (stackDepth < MAX_LISTENER_STACK_DEPTH) {
                 threadLocals.setFutureListenerStackDepth(stackDepth + 1);
                 try {
-                    notifyListenersNow();
+                    notifyListenersNow(); // 执行
                 } finally {
                     threadLocals.setFutureListenerStackDepth(stackDepth);
                 }
@@ -545,11 +545,11 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
             listeners = this.listeners;
             this.listeners = null;
         }
-        for (;;) {
+        for (;;) { // 循环执行所有监听器
             if (listeners instanceof DefaultFutureListeners) {
                 notifyListeners0((DefaultFutureListeners) listeners);
             } else {
-                notifyListener0(this, (GenericFutureListener<?>) listeners);
+                notifyListener0(this, (GenericFutureListener<?>) listeners);// 执行
             }
             synchronized (this) {
                 if (this.listeners == null) {
@@ -588,7 +588,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
             listeners = listener;
         } else if (listeners instanceof DefaultFutureListeners) {
             ((DefaultFutureListeners) listeners).add(listener);
-        } else {
+        } else {// 这里
             listeners = new DefaultFutureListeners((GenericFutureListener<?>) listeners, listener);
         }
     }

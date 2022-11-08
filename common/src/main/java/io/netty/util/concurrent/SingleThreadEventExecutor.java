@@ -75,7 +75,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             AtomicReferenceFieldUpdater.newUpdater(
                     SingleThreadEventExecutor.class, ThreadProperties.class, "threadProperties");
 
-    private final Queue<Runnable> taskQueue;
+    private final Queue<Runnable> taskQueue; //任务队列
 
     private volatile Thread thread;
     @SuppressWarnings("unused")
@@ -92,7 +92,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     private long lastExecutionTime;
 
     @SuppressWarnings({ "FieldMayBeFinal", "unused" })
-    private volatile int state = ST_NOT_STARTED;
+    private volatile int state = ST_NOT_STARTED; // 服务器状态
 
     private volatile long gracefulShutdownQuietPeriod;
     private volatile long gracefulShutdownTimeout;
@@ -215,7 +215,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     protected static Runnable pollTaskFrom(Queue<Runnable> taskQueue) {
         for (;;) {
             Runnable task = taskQueue.poll();
-            if (task != WAKEUP_TASK) {
+            if (task != WAKEUP_TASK) { // 一直取到的不是空任务为止
                 return task;
             }
         }
@@ -458,6 +458,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      */
     protected boolean runAllTasks(long timeoutNanos) {
         fetchFromScheduledTaskQueue();
+        // 拿第一个任务
         Runnable task = pollTask();
         if (task == null) {
             afterRunningAllTasks();
@@ -468,6 +469,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         long runTasks = 0;
         long lastExecutionTime;
         for (;;) {
+            //执行任务
             safeExecute(task);
 
             runTasks ++;
@@ -480,7 +482,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                     break;
                 }
             }
-
+            // 拿下一个任务
             task = pollTask();
             if (task == null) {
                 lastExecutionTime = getCurrentTimeNanos();
@@ -553,7 +555,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         if (!inEventLoop) {
             // Use offer as we actually only need this to unblock the thread and if offer fails we do not care as there
             // is already something in the queue.
-            taskQueue.offer(WAKEUP_TASK);
+            taskQueue.offer(WAKEUP_TASK);// 放一个空任务
         }
     }
 
@@ -857,7 +859,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         }
 
         if (!addTaskWakesUp && immediate) {
-            wakeup(inEventLoop);
+            wakeup(inEventLoop);// 放一个没有任何逻辑的线程任务到taskQueue队列
         }
     }
 

@@ -70,6 +70,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
         @Override
         public EventExecutor next() {
+            // 客户端channel通过此算法拿到workLoopGroup的某一个工作线程
             return executors[(int) Math.abs(idx.getAndIncrement() % executors.length)];
         }
     }
