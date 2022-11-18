@@ -508,7 +508,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         for (;;) {
             try {
                 int strategy;
-                try { // 第一次初始化strategy返回的是0
+                try { // 第一次初始化strategy返回的是0，taskQueue队列中有任务才会调用selectNowSupplier的匿名函数
+                    //selectNowSupplier匿名函数是NIO Selector.selectNow() 方法会检查当前是否有就绪的 IO 事件, 如果有, 则返回就绪 IO 事件的个数; 如果没有, 则返回0.
                     strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
                     switch (strategy) {
                     case SelectStrategy.CONTINUE:

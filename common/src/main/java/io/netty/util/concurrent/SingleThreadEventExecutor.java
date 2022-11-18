@@ -77,10 +77,10 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private final Queue<Runnable> taskQueue; //任务队列
 
-    private volatile Thread thread;
+    private volatile Thread thread;//
     @SuppressWarnings("unused")
     private volatile ThreadProperties threadProperties;
-    private final Executor executor;
+    private final Executor executor; //执行器
     private volatile boolean interrupted;
 
     private final CountDownLatch threadLock = new CountDownLatch(1);
@@ -457,7 +457,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * the tasks in the task queue and returns if it ran longer than {@code timeoutNanos}.
      */
     protected boolean runAllTasks(long timeoutNanos) {
-        fetchFromScheduledTaskQueue();
+        fetchFromScheduledTaskQueue();// 会把到期的任务从scheduledTaskQueue移动到taskQueue中，之后调用runAllTasksFrom循环执行任务
         // 拿第一个任务
         Runnable task = pollTask();
         if (task == null) {
@@ -836,7 +836,11 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     private void execute(Runnable task, boolean immediate) {
+        // inEventLoop的作用是看当前线程是否是EventLoop所绑定的线程，如果不是，则代表着该EventLoop的工作线程未启动，
+        // 需要通过startThread()先启动（会调用ThreadPerTaskExecutor里面的工厂创建一个线程来执行）
         boolean inEventLoop = inEventLoop();
+        // boss线程nThreads=1情况下，if (!inEventLoop)只会进入一次，后面有任务进来，调用addTask添加到队列即可
+        //任务会在这个创建好的线程里面执行，里面有个死循环（具体看NioEventLoop#run()），里面会取任务执行，并且这个线程会监听处理读写事件，即调用selector.select()处理读写
         addTask(task);
         if (!inEventLoop) {
             // 重点
@@ -992,7 +996,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                thread = Thread.currentThread();
+                thread = Thread.currentThread(); // thread赋值，后续inEventLoop判断会是true
                 if (interrupted) {
                     thread.interrupt();
                 }

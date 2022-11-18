@@ -53,8 +53,8 @@ public final class ThreadExecutorMap {
         ObjectUtil.checkNotNull(eventExecutor, "eventExecutor");
         return new Executor() {
             @Override
-            public void execute(final Runnable command) {
-                executor.execute(apply(command, eventExecutor));
+            public void execute(final Runnable command) { // 执行这里
+                executor.execute(apply(command, eventExecutor)); //这里的executor是工厂，threadFactory.newThread(command).start(); 创建一个线程执行并直接start
             }
         };
     }
@@ -66,12 +66,12 @@ public final class ThreadExecutorMap {
     public static Runnable apply(final Runnable command, final EventExecutor eventExecutor) {
         ObjectUtil.checkNotNull(command, "command");
         ObjectUtil.checkNotNull(eventExecutor, "eventExecutor");
-        return new Runnable() {
+        return new Runnable() { //构造一个线程
             @Override
             public void run() {
                 setCurrentEventExecutor(eventExecutor);
                 try {
-                    command.run();
+                    command.run(); // 最终执行任务
                 } finally {
                     setCurrentEventExecutor(null);
                 }

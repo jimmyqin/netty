@@ -71,11 +71,11 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
     protected MultithreadEventExecutorGroup(int nThreads, Executor executor,
                                             EventExecutorChooserFactory chooserFactory, Object... args) {
         checkPositive(nThreads, "nThreads");
-
+        // 为空
         if (executor == null) {
-            executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
+            executor = new ThreadPerTaskExecutor(newDefaultThreadFactory()); // 会利用工厂创建线程
         }
-        // 线程池创建，
+        // 线程池创建
         children = new EventExecutor[nThreads];
 
         for (int i = 0; i < nThreads; i ++) {
