@@ -158,7 +158,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
 
         try {
             if (ch != null) {
-                // 把当前服务端的serverChannel和客户端的channel即（ch）包装到一起添加进buf中，包装的NioSocketChannel会把事件置为OP_READ，不再是OP_ACCEPT事件
+                // 把当前服务端的serverChannel和客户端的channel即（ch）包装到一起添加进buf中，包装的NioSocketChannel会把事件置为OP_READ
                 // 这里NioSocketChannel构造函数的this就是服务端的channel了，ch就是客户端的channel
                 buf.add(new NioSocketChannel(this, ch));
                 return 1;

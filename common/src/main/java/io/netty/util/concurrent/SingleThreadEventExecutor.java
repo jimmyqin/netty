@@ -168,7 +168,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         super(parent);
         this.addTaskWakesUp = addTaskWakesUp;
         this.maxPendingTasks = DEFAULT_MAX_PENDING_EXECUTOR_TASKS;
-        this.executor = ThreadExecutorMap.apply(executor, this);
+        this.executor = ThreadExecutorMap.apply(executor, this); //对executor线程执行器进行包装
         // taskQueue 队列
         this.taskQueue = ObjectUtil.checkNotNull(taskQueue, "taskQueue");
         this.rejectedExecutionHandler = ObjectUtil.checkNotNull(rejectedHandler, "rejectedHandler");
@@ -836,8 +836,8 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     private void execute(Runnable task, boolean immediate) {
-        // inEventLoop的作用是看当前线程是否是EventLoop所绑定的线程，如果不是，则代表着该EventLoop的工作线程未启动，
-        // 需要通过startThread()先启动（会调用ThreadPerTaskExecutor里面的工厂创建一个线程来执行）
+        // inEventLoop的作用是看当前线程是否是EventLoop所绑定的线程，如果不是，则代表着该EventLoop的工作线程未启动，即还未创建执行线程，thread为null
+        // 需要通过startThread()先启动（会调用ThreadPerTaskExecutor#execute里面的工厂创建一个线程来执行threadFactory.newThread(command).start()）
         boolean inEventLoop = inEventLoop();
         // boss线程nThreads=1情况下，if (!inEventLoop)只会进入一次，后面有任务进来，调用addTask添加到队列即可
         //任务会在这个创建好的线程里面执行，里面有个死循环（具体看NioEventLoop#run()），里面会取任务执行，并且这个线程会监听处理读写事件，即调用selector.select()处理读写

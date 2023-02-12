@@ -51,7 +51,7 @@ public final class ThreadExecutorMap {
     public static Executor apply(final Executor executor, final EventExecutor eventExecutor) {
         ObjectUtil.checkNotNull(executor, "executor");
         ObjectUtil.checkNotNull(eventExecutor, "eventExecutor");
-        return new Executor() {
+        return new Executor() { //创建执行器
             @Override
             public void execute(final Runnable command) { // 执行这里
                 executor.execute(apply(command, eventExecutor)); //这里的executor是工厂，threadFactory.newThread(command).start(); 创建一个线程执行并直接start
@@ -66,7 +66,7 @@ public final class ThreadExecutorMap {
     public static Runnable apply(final Runnable command, final EventExecutor eventExecutor) {
         ObjectUtil.checkNotNull(command, "command");
         ObjectUtil.checkNotNull(eventExecutor, "eventExecutor");
-        return new Runnable() { //构造一个线程
+        return new Runnable() { //构造一个线程，目的对command进行包装
             @Override
             public void run() {
                 setCurrentEventExecutor(eventExecutor);
